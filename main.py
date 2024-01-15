@@ -1,25 +1,29 @@
 import telebot
 
-API_TOKEN = '5993744682:AAGVfdBsXaLS4ZrtWLnn1JfJCgXN2yE1osI'
-bot = telebot.TeleBot(API_TOKEN)
+# Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather on Telegram
+bot_token = '5993744682:AAGVfdBsXaLS4ZrtWLnn1JfJCgXN2yE1osI'
 
-user_to_admin_mapping = {}
-admin_chat_id = 6018099549
+# Create a bot instance
+bot = telebot.TeleBot(bot_token)
 
-@bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
-    bot.send_message(message.chat.id, 'Hello')
+# Admin's chat ID (replace with your own)
+admin_chat_id = 6018099549  # Replace with your admin chat ID
 
+# Handle the "/start" command
+@bot.message_handler(commands=['start'])
+def handle_start(message):
+    bot.send_message(message.chat.id, "Welcome to the bot! You can send messages to the admin here.")
 
+# Handle messages from users to admin
 @bot.message_handler(func=lambda message: True, content_types=['text'])
-def send_message(message, admin_chat_id=6018099549):
-    user_chat_id = message.chat.id
+def handle_messages(message):
+    bot.send_message(admin_chat_id, f"User {message.chat.id} says: {message.text}")
+    bot.send_message(message.chat.id, "Your message has been forwarded to the admin.")
 
-    if user_chat_id not in user_to_admin_mapping:
-        user_to_admin_mapping[user_chat_id] = admin_chat_id
+# Handle admin's responses to users
+@bot.message_handler(func=lambda message: message.chat.id == admin_chat_id, content_types=['text'])
+def handle_admin_responses(message):
+    bot.send_message(message.text.split()[0], f"Admin says: {message.text}")
 
-    admin_chat_id = user_to_admin_mapping[user_chat_id]
-    bot.send_message(admin_chat_id, message.text)
-    # bot.send_message(user_chat_id)
-
+# Polling loop
 bot.polling(none_stop=True)
